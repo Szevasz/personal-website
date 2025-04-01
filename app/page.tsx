@@ -439,14 +439,14 @@ export default function Home() {
 
     try {
       await emailjs.send(
-        'service_g7e340h', // 替换为你的 EmailJS service ID
-        'template_8xh7pm8', // 替换为你的 EmailJS template ID
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         {
           from_name: formData.name,
           from_email: formData.email,
           message: formData.message,
         },
-        'bII25mDFTRChXga0Q' // 替换为你的 EmailJS public key
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
 
       setStatus({ loading: false, success: true, error: false });
