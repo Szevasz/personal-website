@@ -10,6 +10,7 @@ import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { TextRevealCard } from "@/components/ui/text-reveal-card";
 import { HoverEffect } from "@/components/ui/card-hover-effect";
 import emailjs from '@emailjs/browser';
+
 //globe组件数据
 const World = dynamic(() => import("../components/ui/globe").then((m) => m.World), {
   ssr: false,
@@ -36,6 +37,11 @@ const projects = [
 ];
 
 export default function Home() {
+  // 在组件内部初始化 EmailJS
+  React.useEffect(() => {
+    emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
+  }, []);
+
   const globeConfig = {
     pointSize: 4,
     globeColor: "#062056",
@@ -438,20 +444,26 @@ export default function Home() {
     setStatus({ loading: true, success: false, error: false });
 
     try {
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          message: formData.message,
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        message: formData.message,
+      };
+
+      const response = await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
+        templateParams
       );
 
-      setStatus({ loading: false, success: true, error: false });
-      setFormData({ name: '', email: '', message: '' });
+      if (response.status === 200) {
+        setStatus({ loading: false, success: true, error: false });
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error('Failed to send email');
+      }
     } catch (error) {
+      console.error('EmailJS error:', error);
       setStatus({ loading: false, success: false, error: true });
     }
   };
@@ -662,10 +674,10 @@ export default function Home() {
       <section id="contact" className="py-20 bg-gray-500 scroll-mt-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-white">Contact Me</h2>
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto bg-gray-600 p-8 rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-white">Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-white mb-2">Name</label>
                 <input
                   type="text"
                   id="name"
@@ -673,11 +685,12 @@ export default function Home() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white/10 text-white placeholder-gray-300"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-400 border-gray-600 p-3"
+                  placeholder="Your name"
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-white">Email</label>
+                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">Email</label>
                 <input
                   type="email"
                   id="email"
@@ -685,11 +698,12 @@ export default function Home() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white/10 text-white placeholder-gray-300"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-400 border-gray-600 p-3"
+                  placeholder="your.email@example.com"
                 />
               </div>
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-white">Message</label>
+                <label htmlFor="message" className="block text-sm font-medium text-white mb-2">Message</label>
                 <textarea
                   id="message"
                   name="message"
@@ -697,13 +711,14 @@ export default function Home() {
                   onChange={handleChange}
                   required
                   rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white/10 text-white placeholder-gray-300"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-400 border-gray-600 p-3"
+                  placeholder="Your message..."
                 ></textarea>
               </div>
               <button
                 type="submit"
                 disabled={status.loading}
-                className={`w-full px-6 py-2 rounded-lg transition ${
+                className={`w-full px-6 py-3 rounded-lg transition ${
                   status.loading
                     ? 'bg-gray-600 cursor-not-allowed'
                     : 'bg-indigo-600 hover:bg-indigo-700'
@@ -713,12 +728,12 @@ export default function Home() {
               </button>
               
               {status.success && (
-                <div className="text-indigo-400 text-center font-medium">
+                <div className="text-indigo-400 text-center font-medium mt-4">
                   Message sent successfully!
                 </div>
               )}
               {status.error && (
-                <div className="text-red-400 text-center font-medium">
+                <div className="text-red-400 text-center font-medium mt-4">
                   Failed to send message. Please try again.
                 </div>
               )}
