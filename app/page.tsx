@@ -39,7 +39,7 @@ const projects = [
 export default function Home() {
   // 在组件内部初始化 EmailJS
   React.useEffect(() => {
-    emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
+    emailjs.init('bII25mDFTRChXga0Q'); // 替换为您的 EmailJS Public Key
   }, []);
 
   const globeConfig = {
@@ -451,8 +451,8 @@ export default function Home() {
       };
 
       const response = await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
+        'service_g7e340h', // 替换为您的 EmailJS Service ID
+        'template_8xh7pm8', // 替换为您的 EmailJS Template ID
         templateParams
       );
 
